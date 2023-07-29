@@ -22,75 +22,84 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class EncryptedAuthenticator extends UnicastRemoteObject implements Authenticator {
-    private KeyPair keyPair;
-    private KeyPairGenerator generator;
-    private HashMap<String, byte[]> credentials;
-    private HashSet<String> sessions;
+        private KeyPair keyPair;
+        private KeyPairGenerator generator;
+        private HashMap<String, byte[]> credentials;
+        private HashSet<String> sessions;
 
-    public EncryptedAuthenticator() throws RemoteException, NoSuchAlgorithmException {
-        super();
-        this.generator = KeyPairGenerator.getInstance("RSA");
-        this.keyPair = null;
-        this.credentials = new HashMap<String, byte[]>();
-        this.sessions = new HashSet<String>();
-    }
+        public EncryptedAuthenticator() throws RemoteException, NoSuchAlgorithmException {
+                super();
+                this.generator = KeyPairGenerator.getInstance("RSA");
+                this.keyPair = null;
+                this.credentials = new HashMap<String, byte[]>();
+                this.sessions = new HashSet<String>();
+        }
 
-    public PublicKey generatePublicKey() throws RemoteException {
-        if (this.keyPair == null) {
-            this.keyPair = this.generator.generateKeyPair();
-        } 
+        protected void addUser(String username, String password) throws NoSuchAlgorithmException, BadPaddingException {
+                this.credentials.put(username, getPasswordHash(password));
+        }
 
-        return this.keyPair.getPublic();
-    }
-
-    public boolean authenticate(byte[] username, byte[] password) throws RemoteException {
-        try {
-            String decryptedUsername = this.decrypt(username);
-            String decryptedPassword = this.decrypt(password);
-
-            if (this.credentials.containsKey(decryptedUsername)) {
-                byte[] passwordHash = this.getPasswordHash(decryptedPassword);
-
-                if (Arrays.equals(passwordHash, this.credentials.get(decryptedUsername))) {
-                    this.sessions.add(decryptedUsername);
-                    return true;
+        public PublicKey generatePublicKey() throws RemoteException {
+                if (this.keyPair == null) {
+                        this.keyPair = this.generator.generateKeyPair();
                 }
-            }
-        } catch (Exception e) {
+
+                return this.keyPair.getPublic();
         }
 
-        return false;
-    }
+        public boolean authenticate(byte[] username, byte[] password) throws RemoteException {
+                try {
+                        String decryptedUsername = this.decrypt(username);
+                        String decryptedPassword = this.decrypt(password);
 
-    public void logOut(byte[] username) throws RemoteException {
-        try {
-            String decryptedUsername = this.decrypt(username);
+                        System.out.println("DEBUG - Username: " + decryptedUsername);
+                        System.out.println("DEBUG - Password: " + decryptedPassword);
 
-            if (this.sessions.contains(decryptedUsername)) {
-                this.sessions.remove(decryptedUsername);
-            }
-        } catch (Exception e) {
+                        if (this.credentials.containsKey(decryptedUsername)) {
+                                byte[] passwordHash = this.getPasswordHash(decryptedPassword);
+
+                                if (Arrays.equals(passwordHash, this.credentials.get(decryptedUsername))) {
+                                        this.sessions.add(decryptedUsername);
+                                        return true;
+                                }
+                        }
+                } catch (Exception e) {
+                        System.out.println("Failed authentication attempt - username: " + Arrays.toString(username));
+                }
+
+                return false;
         }
-    }
 
-    private String decrypt(byte[] cipherText) throws NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException {
-        if (this.keyPair == null) {
-            return null;
+        public void logOut(byte[] username) throws RemoteException {
+                try {
+                        String decryptedUsername = this.decrypt(username);
+
+                        if (this.sessions.contains(decryptedUsername)) {
+                                this.sessions.remove(decryptedUsername);
+                        }
+                } catch (Exception e) {
+                }
         }
 
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-        cipher.init(Cipher.DECRYPT_MODE, this.keyPair.getPrivate());
+        private String decrypt(byte[] cipherText) throws NoSuchAlgorithmException, InvalidKeyException,
+                        IllegalBlockSizeException, NoSuchPaddingException {
+                if (this.keyPair == null) {
+                        return null;
+                }
 
-        try {
-            return new String(cipher.doFinal(cipherText));
-        } catch (BadPaddingException e) {
-            return null;
+                Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                cipher.init(Cipher.DECRYPT_MODE, this.keyPair.getPrivate());
+
+                try {
+                        return new String(cipher.doFinal(cipherText));
+                } catch (BadPaddingException e) {
+                        return null;
+                }
         }
-    }
 
-    private byte[] getPasswordHash(String password) throws NoSuchAlgorithmException, BadPaddingException {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(password.getBytes());
-        return md.digest();
-    }
+        private byte[] getPasswordHash(String password) throws NoSuchAlgorithmException, BadPaddingException {
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                md.update(password.getBytes());
+                return md.digest();
+        }
 }
