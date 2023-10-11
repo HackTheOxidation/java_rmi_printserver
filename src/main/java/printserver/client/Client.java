@@ -4,12 +4,8 @@ import printserver.common.PrintServer;
 import printserver.common.Authenticator;
 
 import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.security.PublicKey;
 import java.io.Console;
-import java.net.MalformedURLException;
-import java.util.Arrays;
 import java.util.Scanner;
 
 import javax.crypto.Cipher;
