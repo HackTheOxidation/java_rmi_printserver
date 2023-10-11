@@ -3,7 +3,6 @@ package printserver.server;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.security.NoSuchAlgorithmException;
 
 public class App {
         public static void main(String[] args) throws RemoteException {
