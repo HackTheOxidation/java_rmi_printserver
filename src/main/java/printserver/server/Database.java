@@ -8,7 +8,8 @@ public class Database {
     private final String USER = "efiespng";
     private final String PASSWORD = "xPT519NpOeC6Y14XZp6vYPoO_IeusQVR";
 
-    public void createUser(Login login) throws SQLException {
+    public void createUser(Login login) throws SQLException, ClassNotFoundException {
+        Class.forName("org.postgresql.Driver");
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
             PreparedStatement statement = con.prepareStatement(
                     "INSERT INTO public.\"Logins\"(\n" +
@@ -17,19 +18,22 @@ public class Database {
             statement.setString(1, login.getUsername());
             statement.setString(2, login.getPasswordHash());
             statement.setString(3, login.getSalt());
+            statement.execute();
         }
     }
 
-    public void changePassword(Login login) throws AccountNotFoundException {
+    public void changePassword(Login login) throws AccountNotFoundException, ClassNotFoundException {
         if(login.isAuthenticated()){
+            Class.forName("org.postgresql.Driver");
             try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
                 PreparedStatement statement = con.prepareStatement(
                         "UPDATE public.\"Logins\"\n" +
                                 "\tSET \"PasswordHash\"=?, \"Salt\"=?\n" +
                                 "\tWHERE \"Username\"=?;");
-                statement.setString(1, login.getUsername());
-                statement.setString(2, login.getPasswordHash());
-                statement.setString(3, login.getSalt());
+                statement.setString(1, login.getPasswordHash());
+                statement.setString(2, login.getSalt());
+                statement.setString(3, login.getUsername());
+                statement.execute();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -38,7 +42,8 @@ public class Database {
         }
     }
 
-    public Login getUser(Login login) throws AccountNotFoundException {
+    public Login getUser(Login login) throws AccountNotFoundException, ClassNotFoundException {
+        Class.forName("org.postgresql.Driver");
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
             PreparedStatement statement = con.prepareStatement(
                     "SELECT \"Username\", \"PasswordHash\", \"Salt\"\n" +
