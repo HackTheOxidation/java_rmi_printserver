@@ -27,9 +27,9 @@ public class Client {
                         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-                        System.out.print("login: ");
+                        System.out.print("Username: ");
                         String username = scanner.next();
-                        System.out.print("password (will not echo): ");
+                        System.out.print("Password (will not echo): ");
                         String password = new String(console.readPassword());  
                         
                         System.out.println("Establishing connection to print server...");

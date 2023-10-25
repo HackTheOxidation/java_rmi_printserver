@@ -4,40 +4,41 @@ import printserver.common.Authenticator;
 import printserver.common.PrintServer;
 
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 
-import java.security.MessageDigest;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PublicKey;
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidKeyException;
+import java.rmi.server.UnicastRemoteObject;
+import java.security.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class EncryptedAuthenticator extends UnicastRemoteObject implements Authenticator {
         private KeyPair keyPair;
-        private KeyPairGenerator generator;
-        private HashMap<String, byte[]> credentials;
-        private HashSet<String> sessions;
-
+        private final KeyPairGenerator generator;
+        private final HashMap<String, byte[]> credentials;
+        private final HashSet<String> sessions;
+        private final Database db;
         public EncryptedAuthenticator() throws RemoteException, NoSuchAlgorithmException {
-                super();
                 this.generator = KeyPairGenerator.getInstance("RSA");
                 this.keyPair = null;
                 this.credentials = new HashMap<String, byte[]>();
                 this.sessions = new HashSet<String>();
+                this.db = new Database();
         }
 
         protected void addUser(String username, String password) throws NoSuchAlgorithmException, BadPaddingException {
-                this.credentials.put(username, getPasswordHash(password));
+                String salt = this.getSalt();
+                String passwordWithSalt = password + salt;
+                Login login = new Login(username, this.getPasswordHash(passwordWithSalt), salt);
+                try {
+                        this.db.createUser(login);
+                } catch (Exception e) {
+                        System.out.println("DEBUG - addUser:" + e.getMessage());
+                }
+                this.credentials.put(username, this.getPasswordHash(passwordWithSalt));
         }
 
         public PublicKey generatePublicKey() throws RemoteException {
@@ -50,36 +51,40 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
 
         public PrintServer authenticate(byte[] username, byte[] password) throws RemoteException {
                 try {
-                        String decryptedUsername = this.decrypt(username);
-                        String decryptedPassword = this.decrypt(password);
-
-                        System.out.println("DEBUG - Username: " + decryptedUsername);
-                        System.out.println("DEBUG - Password: " + decryptedPassword);
-
-                        if (this.credentials.containsKey(decryptedUsername)) {
-                                byte[] passwordHash = this.getPasswordHash(decryptedPassword);
-
-                                if (Arrays.equals(passwordHash, this.credentials.get(decryptedUsername))) {
-                                        this.sessions.add(decryptedUsername);
-                                        return new PrintServant();
-                                }
+                        Login login = this.authenticateLogin(username, password);
+                        if(login.isAuthenticated()){
+                                this.sessions.add(login.getUsername());
+                                return new PrintServant();
                         }
                 } catch (Exception e) {
-                        System.out.println("Failed authentication attempt - username: " + Arrays.toString(username));
+                        System.out.println("DEBUG - authenticate: " + e.getMessage());
                 }
-
+                System.out.println("Failed authentication attempt - username: " + Arrays.toString(username));
                 return null;
         }
 
         public void logOut(byte[] username) throws RemoteException {
                 try {
                         String decryptedUsername = this.decrypt(username);
-
-                        if (this.sessions.contains(decryptedUsername)) {
-                                this.sessions.remove(decryptedUsername);
-                        }
-                } catch (Exception e) {
+                        this.sessions.remove(decryptedUsername);
+                } catch (Exception ignored) {
                 }
+        }
+
+        private Login authenticateLogin(byte[] username, byte[] password) throws IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, ClassNotFoundException {
+                String usernameDecrypted = this.decrypt(username);
+                String passwordDecrypted = this.decrypt(password);
+
+                Login login = this.db.getUser(new Login(usernameDecrypted));
+
+                if(login.getPasswordHash() != null){
+                        String decryptedPasswordWithSalt = passwordDecrypted + login.getSalt();
+                        byte[] inputPasswordHashWithSalt = this.getPasswordHash(decryptedPasswordWithSalt);
+                        if (Arrays.equals(inputPasswordHashWithSalt, login.getPasswordHash())) {
+                                return new Login(login.getUsername(), login.getPasswordHash(), login.getSalt(), true);
+                        }
+                }
+                return new Login(usernameDecrypted);
         }
 
         private String decrypt(byte[] cipherText) throws NoSuchAlgorithmException, InvalidKeyException,
@@ -98,9 +103,16 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
                 }
         }
 
-        private byte[] getPasswordHash(String password) throws NoSuchAlgorithmException, BadPaddingException {
+        private byte[] getPasswordHash(String password) throws NoSuchAlgorithmException {
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
                 md.update(password.getBytes());
                 return md.digest();
+        }
+
+        private String getSalt() {
+                Random random = new SecureRandom();
+                byte[] salt = new byte[16];
+                random.nextBytes(salt);
+                return Base64.getEncoder().encodeToString(salt);
         }
 }
