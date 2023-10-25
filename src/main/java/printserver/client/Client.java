@@ -30,18 +30,19 @@ public class Client {
                         System.out.print("login: ");
                         String username = scanner.next();
                         System.out.print("password (will not echo): ");
-                        String password = new String(console.readPassword());
-                        boolean is_authenticated = auth.authenticate(cipher.doFinal(username.getBytes()),
+                        String password = new String(console.readPassword());  
+                        
+                        System.out.println("Establishing connection to print server...");
+                        PrintServer ps = auth.authenticate(cipher.doFinal(username.getBytes()),
                                         cipher.doFinal(password.getBytes()));
 
-                        if (!is_authenticated) {
+                        if (ps == null) {
                                 System.out.println(
                                                 "Authentication attempt failed. Restart the client and try again...");
                                 System.exit(0);
                         }
 
-                        System.out.println("Establishing connection to print server...");
-                        PrintServer ps = (PrintServer) Naming.lookup("rmi://localhost:5099/printserver");
+                      
                         System.out.println("Connection established!");
 
                         while (choice != 0) {
