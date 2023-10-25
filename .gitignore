@@ -2,3 +2,6 @@ bazel*
 /java_rmi_printserver.iml
 /.idea/
 /out/
+/package.json
+/package-lock.json
+/node_modules/.package-lock.json

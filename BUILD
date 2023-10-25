@@ -11,7 +11,7 @@ java_binary(
         name = "PrintServer.Server",
         srcs = glob(["src/main/java/printserver/server/*.java"]),
         main_class = "printserver.server.App",
-        deps = ["//:PrintServer.Common"],
+        deps = ["//:PrintServer.Common", "postgresql-42.6.0.jar"],
 )
 
 java_binary(
