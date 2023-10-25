@@ -54,7 +54,7 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
         }
 
         private byte[] getPasswordHash(String password) throws NoSuchAlgorithmException {
-                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                MessageDigest md = MessageDigest.getInstance("SHA3-256");
                 md.update(password.getBytes());
                 return md.digest();
         }
