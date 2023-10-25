@@ -16,7 +16,7 @@ public class Database {
                     "\t\"Username\", \"PasswordHash\", \"Salt\")\n" +
                     "\tVALUES (?, ?, ?);");
             statement.setString(1, login.getUsername());
-            statement.setString(2, login.getPasswordHash());
+            statement.setBytes(2, login.getPasswordHash());
             statement.setString(3, login.getSalt());
             statement.execute();
         }
@@ -30,7 +30,7 @@ public class Database {
                         "UPDATE public.\"Logins\"\n" +
                                 "\tSET \"PasswordHash\"=?, \"Salt\"=?\n" +
                                 "\tWHERE \"Username\"=?;");
-                statement.setString(1, login.getPasswordHash());
+                statement.setBytes(1, login.getPasswordHash());
                 statement.setString(2, login.getSalt());
                 statement.setString(3, login.getUsername());
                 statement.execute();
@@ -42,7 +42,7 @@ public class Database {
         }
     }
 
-    public Login getUser(Login login) throws AccountNotFoundException, ClassNotFoundException {
+    public Login getUser(Login login) throws ClassNotFoundException {
         Class.forName("org.postgresql.Driver");
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
             PreparedStatement statement = con.prepareStatement(
@@ -53,12 +53,12 @@ public class Database {
             try (ResultSet resultSet = statement.executeQuery()) {
                 resultSet.next();
                 return new Login(resultSet.getString("Username"),
-                        resultSet.getString("PasswordHash"),
+                        resultSet.getBytes("PasswordHash"),
                         resultSet.getString("Salt"),
                         false);
             }
         } catch (SQLException e) {
-            throw new AccountNotFoundException();
+            return login;
         }
     }
 }

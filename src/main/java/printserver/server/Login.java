@@ -2,17 +2,17 @@ package printserver.server;
 
 public class Login {
     private final String Username;
-    private final String PasswordHash;
+    private final byte[] PasswordHash;
     private final String Salt;
     private final boolean Authenticated;
-    public Login(String username, String passwordHash, String salt, boolean authenticated) {
+    public Login(String username, byte[] passwordHash, String salt, boolean authenticated) {
         Username = username;
         PasswordHash = passwordHash;
         Salt = salt;
         Authenticated = authenticated;
     }
 
-    public Login(String username, String passwordHash, String salt) {
+    public Login(String username, byte[] passwordHash, String salt) {
         Username = username;
         PasswordHash = passwordHash;
         Salt = salt;
@@ -30,7 +30,7 @@ public class Login {
         return Username;
     }
 
-    public String getPasswordHash() {
+    public byte[] getPasswordHash() {
         return PasswordHash;
     }
 

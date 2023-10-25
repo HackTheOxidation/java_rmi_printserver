@@ -9,7 +9,7 @@ public class App {
                 Registry registry = LocateRegistry.createRegistry(5099);
                 try {
                         EncryptedAuthenticator auth = new EncryptedAuthenticator();
-                        auth.addUser("user", "123");
+                        //auth.addUser("user", "123");
                         registry.rebind("login", auth);
                 } catch (Exception e) {
                         System.out.println("Failed to create authenticator: " + e.getMessage());
