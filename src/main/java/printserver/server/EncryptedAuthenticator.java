@@ -1,6 +1,7 @@
 package printserver.server;
 
 import printserver.common.Authenticator;
+import printserver.common.PrintServer;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -47,7 +48,7 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
                 return this.keyPair.getPublic();
         }
 
-        public boolean authenticate(byte[] username, byte[] password) throws RemoteException {
+        public PrintServer authenticate(byte[] username, byte[] password) throws RemoteException {
                 try {
                         String decryptedUsername = this.decrypt(username);
                         String decryptedPassword = this.decrypt(password);
@@ -60,14 +61,14 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
 
                                 if (Arrays.equals(passwordHash, this.credentials.get(decryptedUsername))) {
                                         this.sessions.add(decryptedUsername);
-                                        return true;
+                                        return new PrintServant();
                                 }
                         }
                 } catch (Exception e) {
                         System.out.println("Failed authentication attempt - username: " + Arrays.toString(username));
                 }
 
-                return false;
+                return null;
         }
 
         public void logOut(byte[] username) throws RemoteException {
