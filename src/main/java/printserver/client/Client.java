@@ -1,7 +1,6 @@
 package printserver.client;
 
-import printserver.common.PrintServer;
-import printserver.common.Authenticator;
+import printserver.common.*;
 
 import java.net.InetAddress;
 import java.rmi.Naming;
@@ -22,16 +21,14 @@ public class Client {
                 int choice = -1;
                 Console console = System.console();
 
-                // SSL/TLS for Java RMI:
-                // https://colinchjava.github.io/2023-09-14/11-51-09-553866-securing-java-rmi-applications-with-ssltls/
-                // Specify the truststore and its password.
-                System.setProperty("javax.net.ssl.trustStore", "path/to/truststore.jks");
-                System.setProperty("javax.net.ssl.trustStorePassword", "truststore_password");
-
-                SslRMIClientSocketFactory ssl = new SslRMIClientSocketFactory();
-                Registry registry = LocateRegistry.getRegistry(InetAddress.getLocalHost().getHostName(), PORT, ssl);
+                if (System.getSecurityManager() == null) {
+                        System.setSecurityManager(new SecurityManager());
+                }
 
                 try {
+                        Registry registry = LocateRegistry.getRegistry("localhost", PORT,
+                                        new RMISSLClientSocketFactory());
+
                         System.out.println("Welcome to the Print Server client!");
 
                         System.out.println("Establishing connection to authenticator...");
@@ -141,6 +138,8 @@ public class Client {
 
                         auth.logOut(username.getBytes());
                 } catch (Exception e) {
+                        System.out.println("Client exception: " + e.getMessage());
+                        e.printStackTrace();
                 } finally {
                         scanner.close();
                 }

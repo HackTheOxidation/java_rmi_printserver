@@ -1,13 +1,16 @@
 package printserver.server;
 
-import printserver.common.PrintServer;
+import printserver.common.*;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 public class PrintServant extends UnicastRemoteObject implements PrintServer {
-        public PrintServant() throws RemoteException {
-                super();
+
+        private static final int PORT = 5099;
+
+        public PrintServant() throws Exception, RemoteException {
+                super(PORT, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());
         }
 
         public void print(String filename, String printer) throws RemoteException {

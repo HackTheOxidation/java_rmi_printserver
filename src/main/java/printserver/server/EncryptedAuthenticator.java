@@ -1,6 +1,6 @@
 package printserver.server;
 
-import printserver.common.Authenticator;
+import printserver.common.*;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -27,8 +27,10 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
         private HashMap<String, byte[]> credentials;
         private HashSet<String> sessions;
 
-        public EncryptedAuthenticator() throws RemoteException, NoSuchAlgorithmException {
-                super();
+        private static final int PORT = 5099;
+
+        public EncryptedAuthenticator() throws Exception, RemoteException, NoSuchAlgorithmException {
+                super(PORT, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());
                 this.generator = KeyPairGenerator.getInstance("RSA");
                 this.keyPair = null;
                 this.credentials = new HashMap<String, byte[]>();
@@ -78,6 +80,8 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
                                 this.sessions.remove(decryptedUsername);
                         }
                 } catch (Exception e) {
+                    System.out.println("EncryptedAuthenticator - Logout failed: " + e.getMessage());
+                    e.printStackTrace();
                 }
         }
 
@@ -98,7 +102,7 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
         }
 
         private byte[] getPasswordHash(String password) throws NoSuchAlgorithmException, BadPaddingException {
-                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                MessageDigest md = MessageDigest.getInstance("SHA3-256");
                 md.update(password.getBytes());
                 return md.digest();
         }
