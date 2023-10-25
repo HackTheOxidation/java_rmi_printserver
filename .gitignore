@@ -1,1 +1,4 @@
 bazel*
+/java_rmi_printserver.iml
+/.idea/
+/out/
