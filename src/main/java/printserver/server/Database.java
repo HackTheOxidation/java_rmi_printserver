@@ -2,6 +2,8 @@ package printserver.server;
 
 import javax.security.auth.login.AccountNotFoundException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Database {
     private final String URL = "jdbc:postgresql://ella.db.elephantsql.com:5432/efiespng";
@@ -14,7 +16,7 @@ public class Database {
             PreparedStatement statement = con.prepareStatement(
                     "INSERT INTO public.\"Logins\"(\n" +
                     "\t\"Username\", \"PasswordHash\", \"Salt\")\n" +
-                    "\tVALUES (?, ?, ?);");
+                    "\tVALUES (?, ?, ?) ON CONFLICT DO NOTHING;");
             statement.setString(1, login.getUsername());
             statement.setBytes(2, login.getPasswordHash());
             statement.setString(3, login.getSalt());
@@ -59,6 +61,47 @@ public class Database {
             }
         } catch (SQLException e) {
             return login;
+        }
+    }
+
+    public void createRole(String role) throws ClassNotFoundException, SQLException {
+        Class.forName("org.postgresql.Driver");
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            PreparedStatement statement = con.prepareStatement(
+                    "INSERT INTO public.\"Roles\"(\n" +
+                            "\t\"Role\")\n" +
+                            "\tVALUES (?) ON CONFLICT DO NOTHING;");
+            statement.setString(1, role);
+            statement.execute();
+        }
+    }
+
+    public void assignRoleToUse(String username, String role) throws ClassNotFoundException, SQLException {
+        Class.forName("org.postgresql.Driver");
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            PreparedStatement statement = con.prepareStatement(
+                    "INSERT INTO public.\"UserRoles\"(\n" +
+                            "\t\"Username\", \"Role\")\n" +
+                            "\tVALUES (?, ?) ON CONFLICT DO NOTHING;");
+            statement.setString(1, username);
+            statement.setString(2, role);
+            statement.execute();
+        }
+    }
+
+    public String getRoleForUser(String username) throws ClassNotFoundException, SQLException
+    {
+        Class.forName("org.postgresql.Driver");
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            PreparedStatement statement = con.prepareStatement(
+                    "SELECT \"Role\"\n" +
+                            "\tFROM public.\"UserRoles\"\n" +
+                            "\tWHERE \"Username\" = ?;");
+            statement.setString(1, username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getString("Role");
+            }
         }
     }
 }
