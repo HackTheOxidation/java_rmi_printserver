@@ -104,4 +104,23 @@ public class Database {
             }
         }
     }
+    public List<String> getPrivilegesForRole(String role) throws ClassNotFoundException, SQLException
+    {
+        Class.forName("org.postgresql.Driver");
+        List<String> privileges = new ArrayList<>();
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            PreparedStatement statement = con.prepareStatement(
+                    "SELECT \"Privilege\"\n" +
+                            "\tFROM public.\"RolePrivileges\"\n" +
+                            "\tWHERE \"Role\" = ?;");
+            statement.setString(1, role);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next())
+                {
+                    privileges.add(resultSet.getString("Privilege"));
+                }
+            }
+        }
+        return privileges;
+    }
 }
