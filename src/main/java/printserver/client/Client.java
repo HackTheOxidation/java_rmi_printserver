@@ -61,13 +61,13 @@ public class Client {
                             System.out.print("Enter the name of the printer: ");
                             printer = scanner.next();
 
-                            ps.print(filename, printer);
+                            ps.print(username, filename, printer);
                             break;
                         case 2:
                             System.out.print("Enter the name of the printer: ");
                             printer = scanner.next();
 
-                            ps.queue(printer);
+                            ps.queue(username, printer);
                             break;
                         case 3:
                             System.out.print("Enter the name of the printer: ");
@@ -76,28 +76,28 @@ public class Client {
                             System.out.print("Enter the number of the job to prioritize: ");
                             int job = scanner.nextInt();
 
-                            ps.topQueue(printer, job);
+                            ps.topQueue(username, printer, job);
                             break;
                         case 4:
-                            ps.start();
+                            ps.start(username);
                             break;
                         case 5:
-                            ps.stop();
+                            ps.stop(username);
                             break;
                         case 6:
-                            ps.restart();
+                            ps.restart(username);
                             break;
                         case 7:
                             System.out.print("Enter the name of the printer: ");
                             printer = scanner.next();
 
-                            ps.status(printer);
+                            ps.status(username, printer);
                             break;
                         case 8:
                             System.out.print("Enter the name of the printer: ");
                             printer = scanner.next();
 
-                            ps.readConfig(printer);
+                            ps.readConfig(username, printer);
                             break;
                         case 9:
                             System.out.print("Enter the name of the printer: ");
@@ -106,7 +106,7 @@ public class Client {
                             System.out.print("Enter the configuration value to set: ");
                             String value = scanner.next();
 
-                            ps.setConfig(printer, value);
+                            ps.setConfig(username, printer, value);
                             break;
                         case 0:
                             System.out.println("Shutting down...");

@@ -10,7 +10,9 @@ import java.security.*;
 
 import javax.crypto.BadPaddingException;
 
+import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class EncryptedAuthenticator extends UnicastRemoteObject implements Authenticator {
         private final Database db;
@@ -38,6 +40,15 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
                 }
                 System.out.println("Failed authentication attempt - username: " + username);
                 return null;
+        }
+
+        public boolean userHasRole(List<String> rolesRequires, String username){
+                try {
+                        List<String> userRoles = db.getRolesForUser(username);
+                        return userRoles.stream().anyMatch(rolesRequires::contains);
+                } catch (Exception e) {
+                        return false;
+                }
         }
 
         private Login authenticateLogin(String username, String password) throws NoSuchAlgorithmException, ClassNotFoundException {
