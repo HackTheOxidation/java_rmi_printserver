@@ -89,10 +89,9 @@ public class Database {
         }
     }
 
-    public List<String> getRolesForUser(String username) throws ClassNotFoundException, SQLException
+    public String getRoleForUser(String username) throws ClassNotFoundException, SQLException
     {
         Class.forName("org.postgresql.Driver");
-        List<String> roles = new ArrayList<>();
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
             PreparedStatement statement = con.prepareStatement(
                     "SELECT \"Role\"\n" +
@@ -100,12 +99,9 @@ public class Database {
                             "\tWHERE \"Username\" = ?;");
             statement.setString(1, username);
             try (ResultSet resultSet = statement.executeQuery()) {
-                while(resultSet.next())
-                {
-                    roles.add(resultSet.getString("Role"));
-                }
+                resultSet.next();
+                return resultSet.getString("Role");
             }
         }
-        return roles;
     }
 }
