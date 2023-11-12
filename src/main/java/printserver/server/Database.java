@@ -24,26 +24,6 @@ public class Database {
         }
     }
 
-    public void changePassword(Login login) throws AccountNotFoundException, ClassNotFoundException {
-        if(login.isAuthenticated()){
-            Class.forName("org.postgresql.Driver");
-            try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
-                PreparedStatement statement = con.prepareStatement(
-                        "UPDATE public.\"Logins\"\n" +
-                                "\tSET \"PasswordHash\"=?, \"Salt\"=?\n" +
-                                "\tWHERE \"Username\"=?;");
-                statement.setBytes(1, login.getPasswordHash());
-                statement.setString(2, login.getSalt());
-                statement.setString(3, login.getUsername());
-                statement.execute();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }else{
-            throw new AccountNotFoundException();
-        }
-    }
-
     public Login getUser(Login login) throws ClassNotFoundException {
         Class.forName("org.postgresql.Driver");
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
@@ -61,31 +41,6 @@ public class Database {
             }
         } catch (SQLException e) {
             return login;
-        }
-    }
-
-    public void createRole(String role) throws ClassNotFoundException, SQLException {
-        Class.forName("org.postgresql.Driver");
-        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            PreparedStatement statement = con.prepareStatement(
-                    "INSERT INTO public.\"Roles\"(\n" +
-                            "\t\"Role\")\n" +
-                            "\tVALUES (?) ON CONFLICT DO NOTHING;");
-            statement.setString(1, role);
-            statement.execute();
-        }
-    }
-
-    public void assignRoleToUse(String username, String role) throws ClassNotFoundException, SQLException {
-        Class.forName("org.postgresql.Driver");
-        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            PreparedStatement statement = con.prepareStatement(
-                    "INSERT INTO public.\"UserRoles\"(\n" +
-                            "\t\"Username\", \"Role\")\n" +
-                            "\tVALUES (?, ?) ON CONFLICT DO NOTHING;");
-            statement.setString(1, username);
-            statement.setString(2, role);
-            statement.execute();
         }
     }
 
@@ -114,6 +69,26 @@ public class Database {
                             "\tFROM public.\"RolePrivileges\"\n" +
                             "\tWHERE \"Role\" = ?;");
             statement.setString(1, role);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next())
+                {
+                    privileges.add(resultSet.getString("Privilege"));
+                }
+            }
+        }
+        return privileges;
+    }
+
+    public List<String> getPriviligesForUser(String username) throws ClassNotFoundException, SQLException
+    {
+        Class.forName("org.postgresql.Driver");
+        List<String> privileges = new ArrayList<>();
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            PreparedStatement statement = con.prepareStatement(
+                    "SELECT \"Privilege\"\n" +
+                            "\tFROM public.\"ACL\"\n" +
+                            "\tWHERE \"Username\" = ?;");
+            statement.setString(1, username);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next())
                 {
