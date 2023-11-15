@@ -6,7 +6,7 @@ public class Login {
     private final String Salt;
     private final boolean Authenticated;
     public Login(String username, byte[] passwordHash, String salt, boolean authenticated) {
-        Username = username.toLowerCase().trim();
+        Username = username;
         PasswordHash = passwordHash;
         Salt = salt;
         Authenticated = authenticated;
