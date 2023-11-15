@@ -32,7 +32,17 @@ public class EncryptedAuthenticator extends UnicastRemoteObject implements Authe
         public PrintServer authenticate(String username, String password) throws RemoteException {
                 try {
                         Login login = this.authenticateLogin(username, password);
-                        if(login.isAuthenticated()) return new Proxy(db.getPriviligesForUser(username));
+                        if(login.isAuthenticated())
+                        {
+                                String role = db.getRoleForUser(username);
+                                List<String> aclPrivileges = db.getPriviligesForUser(username);
+                                List<String> rbacPrivileges = db.getPrivilegesForRole(role);
+                                System.out.println("Username: " + username);
+                                System.out.println("Role: " + role);
+                                System.out.println("ACL privileges: " + aclPrivileges);
+                                System.out.println("RBAC privileges: " + rbacPrivileges);
+                                return new Proxy(username, rbacPrivileges);
+                        }
                 } catch (Exception e) {
                         System.out.println("DEBUG - authenticate: " + e.getMessage());
                 }

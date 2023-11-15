@@ -4,21 +4,21 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface PrintServer extends Remote {
-        void print(String filename, String printer) throws RemoteException;
+        boolean print(String filename, String printer) throws RemoteException;
 
-        void queue(String printer) throws RemoteException;
+        boolean queue(String printer) throws RemoteException;
 
-        void topQueue(String printer, int job) throws RemoteException;
+        boolean topQueue(String printer, int job) throws RemoteException;
 
-        void start() throws RemoteException;
+        boolean start() throws RemoteException;
 
-        void stop() throws RemoteException;
+        boolean stop() throws RemoteException;
 
-        void restart() throws RemoteException;
+        boolean restart() throws RemoteException;
 
-        void status(String printer) throws RemoteException;
+        boolean status(String printer) throws RemoteException;
 
-        void readConfig(String printer) throws RemoteException;
+        boolean readConfig(String printer) throws RemoteException;
 
-        void setConfig(String printer, String value) throws RemoteException;
+        boolean setConfig(String printer, String value) throws RemoteException;
 }

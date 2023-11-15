@@ -8,6 +8,7 @@ import java.io.Console;
 import java.util.Scanner;
 
 public class Client {
+        private final static String PRIVILEGE = "You don't have the required privileges for this operation";
         public static void main(String[] args) {
 
             try (Scanner scanner = new Scanner(System.in)) {
@@ -51,7 +52,7 @@ public class Client {
 
                     System.out.print(":> ");
                     choice = scanner.nextInt();
-                    String printer = null;
+                    String printer;
 
                     switch (choice) {
                         case 1:
@@ -61,13 +62,13 @@ public class Client {
                             System.out.print("Enter the name of the printer: ");
                             printer = scanner.next();
 
-                            ps.print(filename, printer);
+                            if(!ps.print(filename, printer)) System.out.println(PRIVILEGE);
                             break;
                         case 2:
                             System.out.print("Enter the name of the printer: ");
                             printer = scanner.next();
 
-                            ps.queue(printer);
+                            if(!ps.queue(printer)) System.out.println(PRIVILEGE);
                             break;
                         case 3:
                             System.out.print("Enter the name of the printer: ");
@@ -76,28 +77,28 @@ public class Client {
                             System.out.print("Enter the number of the job to prioritize: ");
                             int job = scanner.nextInt();
 
-                            ps.topQueue(printer, job);
+                            if(!ps.topQueue(printer, job)) System.out.println(PRIVILEGE);
                             break;
                         case 4:
-                            ps.start();
+                            if(!ps.start()) System.out.println(PRIVILEGE);
                             break;
                         case 5:
-                            ps.stop();
+                            if(!ps.stop()) System.out.println(PRIVILEGE);
                             break;
                         case 6:
-                            ps.restart();
+                            if(!ps.restart()) System.out.println(PRIVILEGE);
                             break;
                         case 7:
                             System.out.print("Enter the name of the printer: ");
                             printer = scanner.next();
 
-                            ps.status(printer);
+                            if(!ps.status(printer)) System.out.println(PRIVILEGE);
                             break;
                         case 8:
                             System.out.print("Enter the name of the printer: ");
                             printer = scanner.next();
 
-                            ps.readConfig(printer);
+                            if(!ps.readConfig(printer)) System.out.println(PRIVILEGE);
                             break;
                         case 9:
                             System.out.print("Enter the name of the printer: ");
@@ -106,7 +107,7 @@ public class Client {
                             System.out.print("Enter the configuration value to set: ");
                             String value = scanner.next();
 
-                            ps.setConfig(printer, value);
+                            if(!ps.setConfig(printer, value)) System.out.println(PRIVILEGE);
                             break;
                         case 0:
                             System.out.println("Shutting down...");
