@@ -4,7 +4,7 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 public class Proxy extends PrintServant{
-    static List<String> acl;
+    private final List<String> acl;
 
     public Proxy(List<String> access) throws RemoteException {
         super();
