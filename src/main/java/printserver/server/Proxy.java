@@ -4,91 +4,79 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 public class Proxy extends PrintServant{
-    private final List<String> acl;
+    private final List<String> permissions;
+    private final String username;
 
-    public Proxy(List<String> access) throws RemoteException {
+    public Proxy(String username, List<String> permissions) throws RemoteException {
         super();
-        acl = access;
+        this.permissions = permissions;
+        this.username = username;
     }
 
     @Override
-    public void print(String filename, String printer) throws RemoteException {
-        if (acl.contains("print")) {
-            super.print(filename, printer);
-        } else {
-            System.out.println("Permission for print is denied");
-        }
+    public boolean print(String filename, String printer) throws RemoteException {
+        if (permissions.contains("print")) return super.print(filename, printer);
+        System.out.println(getPermissionDenied("print"));
+        return false;
     }
 
     @Override
-    public void queue(String printer) throws RemoteException {
-        if (acl.contains("queue")) {
-            super.queue(printer);
-        } else {
-            System.out.println("Permission for queue is denied");
-        } 
+    public boolean queue(String printer) throws RemoteException {
+        if (permissions.contains("queue")) return super.queue(printer);
+        System.out.println(getPermissionDenied("queue"));
+        return false;
     }
 
     @Override
-    public void topQueue(String printer, int job) throws RemoteException {
-        if (acl.contains("topQueue")) {
-            super.topQueue(printer, job);
-        } else {
-            System.out.println("Permission for topQueue is denied");
-        } 
-    }
-    
-    @Override
-    public void start() throws RemoteException {
-        if (acl.contains("start")) {
-            super.start();
-        } else {
-            System.out.println("Permission for start is denied");
-        } 
+    public boolean topQueue(String printer, int job) throws RemoteException {
+        if (permissions.contains("topQueue")) return super.topQueue(printer, job);
+        System.out.println(getPermissionDenied("topQueue"));
+        return false;
     }
 
     @Override
-    public void stop() throws RemoteException {
-        if (acl.contains("stop")) {
-            super.stop();
-        } else {
-            System.out.println("Permission for stop is denied");
-        } 
+    public boolean start() throws RemoteException {
+        if (permissions.contains("start")) return super.start();
+        System.out.println(getPermissionDenied("start"));
+        return false;
     }
 
     @Override
-    public void restart() throws RemoteException {
-        if (acl.contains("restart")) {
-            super.restart();
-        } else {
-            System.out.println("Permission for restart is denied");
-        } 
+    public boolean stop() throws RemoteException {
+        if (permissions.contains("stop")) return super.stop();
+        System.out.println(getPermissionDenied("stop"));
+        return false;
     }
 
     @Override
-    public void status(String printer) throws RemoteException {
-        if (acl.contains("status")) {
-            super.status(printer);
-        } else {
-            System.out.println("Permission for status is denied");
-        } 
+    public boolean restart() throws RemoteException {
+        if (permissions.contains("restart")) return super.restart();
+        System.out.println(getPermissionDenied("restart"));
+        return false;
     }
 
     @Override
-    public void readConfig(String printer) throws RemoteException {
-        if (acl.contains("readConfig")) {
-            super.readConfig(printer);
-        } else {
-            System.out.println("Permission for readConfig is denied");
-        } 
+    public boolean status(String printer) throws RemoteException {
+        if (permissions.contains("status")) return super.status(printer);
+        System.out.println(getPermissionDenied("status"));
+        return false;
     }
 
     @Override
-    public void setConfig(String printer, String value) throws RemoteException {
-        if (acl.contains("setConfig")) {
-            super.setConfig(printer, value);
-        } else {
-            System.out.println("Permission for setConfig is denied");
-        } 
+    public boolean readConfig(String printer) throws RemoteException {
+        if (permissions.contains("readConfig")) return super.readConfig(printer);
+        System.out.println(getPermissionDenied("readConfig"));
+        return false;
+    }
+
+    @Override
+    public boolean setConfig(String printer, String value) throws RemoteException {
+        if (permissions.contains("setConfig")) super.setConfig(printer, value);
+        System.out.println(getPermissionDenied("setConfig"));
+        return false;
+    }
+
+    private String getPermissionDenied(String methodName){
+        return String.format("Permission for %s is denied for user %s", methodName, username);
     }
 }
